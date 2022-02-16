@@ -70,11 +70,7 @@ inline bool apply_exception_translators(std::forward_list<ExceptionTranslator> &
     return false;
 }
 
-#if defined(_MSC_VER)
-#    define PYBIND11_COMPAT_STRDUP _strdup
-#else
-#    define PYBIND11_COMPAT_STRDUP strdup
-#endif
+#define PYBIND11_COMPAT_STRDUP _PyMem_Strdup
 
 PYBIND11_NAMESPACE_END(detail)
 
@@ -317,7 +313,7 @@ protected:
 
         ~strdup_guard() {
             for (auto *s : strings) {
-                std::free(s);
+                PyMem_Free(s);
             }
         }
         char *operator()(const char *s) {
@@ -604,7 +600,7 @@ protected:
 
         /* Install docstring */
         auto *func = (PyCFunctionObject *) m_ptr;
-        std::free(const_cast<char *>(func->m_ml->ml_doc));
+        PyMem_Free(const_cast<char *>(func->m_ml->ml_doc));
         // Install docstring if it's non-empty (when at least one option is enabled)
         func->m_ml->ml_doc
             = signatures.empty() ? nullptr : PYBIND11_COMPAT_STRDUP(signatures.c_str());
@@ -636,19 +632,19 @@ protected:
             // so they cannot be freed. Once the function has been created, they can.
             // Check `make_function_record` for more details.
             if (free_strings) {
-                std::free((char *) rec->name);
-                std::free((char *) rec->doc);
-                std::free((char *) rec->signature);
+                PyMem_Free((char *) rec->name);
+                PyMem_Free((char *) rec->doc);
+                PyMem_Free((char *) rec->signature);
                 for (auto &arg : rec->args) {
-                    std::free(const_cast<char *>(arg.name));
-                    std::free(const_cast<char *>(arg.descr));
+                    PyMem_Free(const_cast<char *>(arg.name));
+                    PyMem_Free(const_cast<char *>(arg.descr));
                 }
             }
             for (auto &arg : rec->args) {
                 arg.value.dec_ref();
             }
             if (rec->def) {
-                std::free(const_cast<char *>(rec->def->ml_doc));
+                PyMem_Free(const_cast<char *>(rec->def->ml_doc));
 // Python 3.9.0 decref's these in the wrong order; rec->def
 // If loaded on 3.9.0, let these leak (use Python 3.9.1 at runtime to fix)
 // See https://github.com/python/cpython/pull/22670
@@ -1777,7 +1773,7 @@ public:
                                                documentation string */
             detail::process_attributes<Extra...>::init(extra..., rec_fget);
             if (rec_fget->doc && rec_fget->doc != doc_prev) {
-                std::free(doc_prev);
+                PyMem_Free(doc_prev);
                 rec_fget->doc = PYBIND11_COMPAT_STRDUP(rec_fget->doc);
             }
         }
@@ -1785,7 +1781,7 @@ public:
             char *doc_prev = rec_fset->doc;
             detail::process_attributes<Extra...>::init(extra..., rec_fset);
             if (rec_fset->doc && rec_fset->doc != doc_prev) {
-                std::free(doc_prev);
+                PyMem_Free(doc_prev);
                 rec_fset->doc = PYBIND11_COMPAT_STRDUP(rec_fset->doc);
             }
             if (!rec_active) {
