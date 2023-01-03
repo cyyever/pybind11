@@ -71,6 +71,7 @@ public:
 
     // This type is not meant to be allocated on the heap.
     void *operator new(size_t) = delete;
+    void operator delete(void *) = delete;
 
 private:
     struct state {
