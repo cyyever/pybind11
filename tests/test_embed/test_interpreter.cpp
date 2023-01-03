@@ -189,9 +189,8 @@ TEST_CASE("Custom PyConfig with argv") {
     {
         PyConfig config;
         PyConfig_InitIsolatedConfig(&config);
-        char *argv[] = {strdup("a.out")};
+        const char *argv[] = {"a.out"};
         py::scoped_interpreter argv_scope{&config, 1, argv};
-        std::free(argv[0]);
         auto module = py::module::import("test_interpreter");
         auto py_widget = module.attr("DerivedWidget")("The question");
         const auto &cpp_widget = py_widget.cast<const Widget &>();
@@ -438,9 +437,8 @@ TEST_CASE("sys.argv gets initialized properly") {
     }
 
     {
-        char *argv[] = {strdup("a.out")};
+        const char *argv[] = {"a.out"};
         py::scoped_interpreter argv_scope(true, 1, argv);
-        std::free(argv[0]);
         auto module = py::module::import("test_interpreter");
         auto py_widget = module.attr("DerivedWidget")("The question");
         const auto &cpp_widget = py_widget.cast<const Widget &>();
