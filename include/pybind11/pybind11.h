@@ -2011,7 +2011,7 @@ inline str enum_name(handle arg) {
 struct enum_base {
     enum_base(const handle &base, const handle &parent) : m_base(base), m_parent(parent) {}
 
-    template<bool is_arithmetic, bool is_convertible>
+    template <bool is_arithmetic, bool is_convertible>
     PYBIND11_NOINLINE void init() {
         m_base.attr("__entries") = dict();
         auto property = handle((PyObject *) &PyProperty_Type);

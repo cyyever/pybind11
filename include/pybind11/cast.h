@@ -149,39 +149,39 @@ public:
             }
         } else {
 #if !defined(PYPY_VERSION)
-          auto index_check = [](PyObject *o) { return PyIndex_Check(o); };
+            auto index_check = [](PyObject *o) { return PyIndex_Check(o); };
 #else
-          // In PyPy 7.3.3, `PyIndex_Check` is implemented by calling `__index__`,
-          // while CPython only considers the existence of `nb_index`/`__index__`.
-          auto index_check = [](PyObject *o) { return hasattr(o, "__index__"); };
+            // In PyPy 7.3.3, `PyIndex_Check` is implemented by calling `__index__`,
+            // while CPython only considers the existence of `nb_index`/`__index__`.
+            auto index_check = [](PyObject *o) { return hasattr(o, "__index__"); };
 #endif
-          if (PyFloat_Check(src.ptr())
-              || (!convert && !PYBIND11_LONG_CHECK(src.ptr()) && !index_check(src.ptr()))) {
-            return false;
-          }
-
-          handle src_or_index = src;
-          // PyPy: 7.3.7's 3.8 does not implement PyLong_*'s __index__ calls.
-#if defined(PYPY_VERSION)
-          object index;
-          if (!PYBIND11_LONG_CHECK(src.ptr())) { // So: index_check(src.ptr())
-            index = reinterpret_steal<object>(PyNumber_Index(src.ptr()));
-            if (!index) {
-              PyErr_Clear();
-              if (!convert)
+            if (PyFloat_Check(src.ptr())
+                || (!convert && !PYBIND11_LONG_CHECK(src.ptr()) && !index_check(src.ptr()))) {
                 return false;
-            } else {
-              src_or_index = index;
             }
-          }
+
+            handle src_or_index = src;
+            // PyPy: 7.3.7's 3.8 does not implement PyLong_*'s __index__ calls.
+#if defined(PYPY_VERSION)
+            object index;
+            if (!PYBIND11_LONG_CHECK(src.ptr())) { // So: index_check(src.ptr())
+                index = reinterpret_steal<object>(PyNumber_Index(src.ptr()));
+                if (!index) {
+                    PyErr_Clear();
+                    if (!convert)
+                        return false;
+                } else {
+                    src_or_index = index;
+                }
+            }
 #endif
-          if PYBIND11_IF_CONSTEXPR (std::is_unsigned<py_type>::value) {
-            py_value = as_unsigned<py_type>(src_or_index.ptr());
-          } else { // signed integer:
-            py_value = sizeof(T) <= sizeof(long)
-              ? (py_type) PyLong_AsLong(src_or_index.ptr())
-              : (py_type) PYBIND11_LONG_AS_LONGLONG(src_or_index.ptr());
-          }
+            if PYBIND11_IF_CONSTEXPR (std::is_unsigned<py_type>::value) {
+                py_value = as_unsigned<py_type>(src_or_index.ptr());
+            } else { // signed integer:
+                py_value = sizeof(T) <= sizeof(long)
+                               ? (py_type) PyLong_AsLong(src_or_index.ptr())
+                               : (py_type) PYBIND11_LONG_AS_LONGLONG(src_or_index.ptr());
+            }
         }
 
         // Python API reported an error
