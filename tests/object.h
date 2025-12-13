@@ -69,27 +69,27 @@ public:
     /// Create a nullptr reference
     ref() : m_ptr(nullptr) {
         print_default_created(this);
-        track_default_created((ref_tag *) this);
+        track_default_created(reinterpret_cast<ref_tag *>(this));
     }
 
     /// Construct a reference from a pointer
     explicit ref(T *ptr) : m_ptr(ptr) {
         if (m_ptr) {
-            ((Object *) m_ptr)->incRef();
+            (reinterpret_cast<Object *>(m_ptr))->incRef();
         }
 
         print_created(this, "from pointer", m_ptr);
-        track_created((ref_tag *) this, "from pointer");
+        track_created(reinterpret_cast<ref_tag *>(this), "from pointer");
     }
 
     /// Copy constructor
     ref(const ref &r) : m_ptr(r.m_ptr) {
         if (m_ptr) {
-            ((Object *) m_ptr)->incRef();
+            (reinterpret_cast<Object *>(m_ptr))->incRef();
         }
 
         print_copy_created(this, "with pointer", m_ptr);
-        track_copy_created((ref_tag *) this);
+        track_copy_created(reinterpret_cast<ref_tag *>(this));
     }
 
     /// Move constructor
@@ -97,29 +97,29 @@ public:
         r.m_ptr = nullptr;
 
         print_move_created(this, "with pointer", m_ptr);
-        track_move_created((ref_tag *) this);
+        track_move_created(reinterpret_cast<ref_tag *>(this));
     }
 
     /// Destroy this reference
     ~ref() {
         if (m_ptr) {
-            ((Object *) m_ptr)->decRef();
+            (reinterpret_cast<Object *>(m_ptr))->decRef();
         }
 
         print_destroyed(this);
-        track_destroyed((ref_tag *) this);
+        track_destroyed(reinterpret_cast<ref_tag *>(this));
     }
 
     /// Move another reference into the current one
     ref &operator=(ref &&r) noexcept {
         print_move_assigned(this, "pointer", r.m_ptr);
-        track_move_assigned((ref_tag *) this);
+        track_move_assigned(reinterpret_cast<ref_tag *>(this));
 
         if (*this == r) {
             return *this;
         }
         if (m_ptr) {
-            ((Object *) m_ptr)->decRef();
+            (reinterpret_cast<Object *>(m_ptr))->decRef();
         }
         m_ptr = r.m_ptr;
         r.m_ptr = nullptr;
@@ -132,17 +132,17 @@ public:
             return *this;
         }
         print_copy_assigned(this, "pointer", r.m_ptr);
-        track_copy_assigned((ref_tag *) this);
+        track_copy_assigned(reinterpret_cast<ref_tag *>(this));
 
         if (m_ptr == r.m_ptr) {
             return *this;
         }
         if (m_ptr) {
-            ((Object *) m_ptr)->decRef();
+            (reinterpret_cast<Object *>(m_ptr))->decRef();
         }
         m_ptr = r.m_ptr;
         if (m_ptr) {
-            ((Object *) m_ptr)->incRef();
+            (reinterpret_cast<Object *>(m_ptr))->incRef();
         }
         return *this;
     }
@@ -150,17 +150,17 @@ public:
     /// Overwrite this reference with a pointer to another object
     ref &operator=(T *ptr) {
         print_values(this, "assigned pointer");
-        track_values((ref_tag *) this, "assigned pointer");
+        track_values(reinterpret_cast<ref_tag *>(this), "assigned pointer");
 
         if (m_ptr == ptr) {
             return *this;
         }
         if (m_ptr) {
-            ((Object *) m_ptr)->decRef();
+            (reinterpret_cast<Object *>(m_ptr))->decRef();
         }
         m_ptr = ptr;
         if (m_ptr) {
-            ((Object *) m_ptr)->incRef();
+            (reinterpret_cast<Object *>(m_ptr))->incRef();
         }
         return *this;
     }

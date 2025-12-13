@@ -54,7 +54,7 @@ object eval(const str &expr, object global = globals(), object local = object())
 
     /* PyRun_String does not accept a PyObject / encoding specifier,
        this seems to be the only alternative */
-    std::string buffer = "# -*- coding: utf-8 -*-\n" + (std::string) expr;
+    std::string buffer = "# -*- coding: utf-8 -*-\n" + std::string(expr);
 
     int start = 0;
     switch (mode) {
@@ -132,7 +132,7 @@ object eval_file(str fname, object global = globals(), object local = object()) 
     }
 
     int closeFile = 1;
-    std::string fname_str = (std::string) fname;
+    std::string fname_str = std::string(fname);
     FILE *f =
 #    if PY_VERSION_HEX >= 0x030E0000
         Py_fopen(fname.ptr(), "r");

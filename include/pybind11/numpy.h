@@ -344,7 +344,7 @@ private:
     static npy_api lookup() {
         module_ m = detail::import_numpy_core_submodule("multiarray");
         auto c = m.attr("_ARRAY_API");
-        void **api_ptr = (void **) PyCapsule_GetPointer(c.ptr(), nullptr);
+        void **api_ptr = static_cast<void **>(PyCapsule_GetPointer(c.ptr(), nullptr));
         if (api_ptr == nullptr) {
             raise_from(PyExc_SystemError, "FAILURE obtaining numpy _ARRAY_API pointer.");
             throw error_already_set();
@@ -645,7 +645,7 @@ protected:
     const unsigned char *data_;
     // Storing the shape & strides in local variables (i.e. these arrays) allows the compiler to
     // make large performance gains on big, nested loops, but requires compile-time dimensions
-    conditional_t<Dynamic, const ssize_t *, std::array<ssize_t, (size_t) Dims>> shape_, strides_;
+    conditional_t<Dynamic, const ssize_t *, std::array<ssize_t, static_cast<size_t>(Dims)>> shape_, strides_;
     const ssize_t dims_;
 
     friend class pybind11::array;
@@ -656,7 +656,7 @@ protected:
                         const ssize_t *strides,
                         enable_if_t<!Dyn, ssize_t>)
         : data_{reinterpret_cast<const unsigned char *>(data)}, dims_{Dims} {
-        for (size_t i = 0; i < (size_t) dims_; i++) {
+        for (size_t i = 0; i < static_cast<size_t>(dims_); i++) {
             shape_[i] = shape[i];
             strides_[i] = strides[i];
         }
@@ -702,7 +702,7 @@ public:
     constexpr static ssize_t itemsize() { return sizeof(T); }
 
     /// Returns the shape (i.e. size) of dimension `dim`
-    ssize_t shape(ssize_t dim) const { return shape_[(size_t) dim]; }
+    ssize_t shape(ssize_t dim) const { return shape_[static_cast<size_t>(dim)]; }
 
     /// Returns the number of dimensions of the array
     ssize_t ndim() const { return dims_; }
@@ -712,11 +712,12 @@ public:
     template <bool Dyn = Dynamic>
     enable_if_t<!Dyn, ssize_t> size() const {
         return std::accumulate(
-            shape_.begin(), shape_.end(), (ssize_t) 1, std::multiplies<ssize_t>());
+            shape_.begin(), shape_.end(), static_cast<ssize_t>(1), std::multiplies<ssize_t>());
     }
     template <bool Dyn = Dynamic>
     enable_if_t<Dyn, ssize_t> size() const {
-        return std::accumulate(shape_, shape_ + ndim(), (ssize_t) 1, std::multiplies<ssize_t>());
+        return std::accumulate(
+            shape_, shape_ + ndim(), static_cast<ssize_t>(1), std::multiplies<ssize_t>());
     }
 
     /// Returns the total number of bytes used by the referenced data.  Note that the actual span
@@ -955,7 +956,7 @@ public:
     /// Flags for the array descriptor
     std::uint64_t flags() const {
         if (detail::npy_api::get().PyArray_RUNTIME_VERSION_ < 0x12) {
-            return (unsigned char) detail::array_descriptor1_proxy(m_ptr)->flags;
+            return static_cast<unsigned char>(detail::array_descriptor1_proxy(m_ptr)->flags);
         }
         return detail::array_descriptor2_proxy(m_ptr)->flags;
     }
@@ -1066,7 +1067,7 @@ public:
         auto tmp = reinterpret_steal<object>(api.PyArray_NewFromDescr_(
             api.PyArray_Type_,
             descr.release().ptr(),
-            (int) ndim,
+            static_cast<int>(ndim),
             // Use reinterpret_cast for PyPy on Windows (remove if fixed, checked on 7.3.1)
             reinterpret_cast<Py_intptr_t *>(shape->data()),
             reinterpret_cast<Py_intptr_t *>(strides->data()),
@@ -1125,7 +1126,8 @@ public:
 
     /// Total number of elements
     ssize_t size() const {
-        return std::accumulate(shape(), shape() + ndim(), (ssize_t) 1, std::multiplies<ssize_t>());
+        return std::accumulate(
+            shape(), shape() + ndim(), static_cast<ssize_t>(1), std::multiplies<ssize_t>());
     }
 
     /// Byte size of a single element
@@ -1195,7 +1197,7 @@ public:
     /// May throw if the index would lead to out of bounds access.
     template <typename... Ix>
     ssize_t offset_at(Ix... index) const {
-        if ((ssize_t) sizeof...(index) > ndim()) {
+        if (static_cast<ssize_t>(sizeof...(index)) > ndim()) {
             fail_dim_check(sizeof...(index), "too many indices for an array");
         }
         return byte_offset(ssize_t(index)...);
@@ -1257,10 +1259,10 @@ public:
         detail::npy_api::PyArray_Dims d
             = {// Use reinterpret_cast for PyPy on Windows (remove if fixed, checked on 7.3.1)
                reinterpret_cast<Py_intptr_t *>(new_shape->data()),
-               int(new_shape->size())};
+               static_cast<int>(new_shape->size())};
         // try to resize, set ordering param to -1 cause it's not used anyway
         auto new_array = reinterpret_steal<object>(
-            detail::npy_api::get().PyArray_Resize_(m_ptr, &d, int(refcheck), -1));
+            detail::npy_api::get().PyArray_Resize_(m_ptr, &d, static_cast<int>(refcheck), -1));
         if (!new_array) {
             throw error_already_set();
         }
@@ -1271,8 +1273,8 @@ public:
 
     /// Optional `order` parameter omitted, to be added as needed.
     array reshape(ShapeContainer new_shape) {
-        detail::npy_api::PyArray_Dims d
-            = {reinterpret_cast<Py_intptr_t *>(new_shape->data()), int(new_shape->size())};
+        detail::npy_api::PyArray_Dims d = {reinterpret_cast<Py_intptr_t *>(new_shape->data()),
+                                           static_cast<int>(new_shape->size())};
         auto new_array
             = reinterpret_steal<array>(detail::npy_api::get().PyArray_Newshape_(m_ptr, &d, 0));
         if (!new_array) {
@@ -1329,7 +1331,7 @@ protected:
 
     template <typename... Ix>
     void check_dimensions(Ix... index) const {
-        check_dimensions_impl(ssize_t(0), shape(), ssize_t(index)...);
+        check_dimensions_impl(static_cast<ssize_t>(0), shape(), ssize_t(index)...);
     }
 
     void check_dimensions_impl(ssize_t, const ssize_t *) const {}
@@ -1432,7 +1434,7 @@ public:
     // Reference to element at a given index
     template <typename... Ix>
     const T &at(Ix... index) const {
-        if ((ssize_t) sizeof...(index) != ndim()) {
+        if (static_cast<ssize_t>(sizeof...(index)) != ndim()) {
             fail_dim_check(sizeof...(index), "index dimension mismatch");
         }
         return *(static_cast<const T *>(array::data())
@@ -1442,7 +1444,7 @@ public:
     // Mutable reference to element at a given index
     template <typename... Ix>
     T &mutable_at(Ix... index) {
-        if ((ssize_t) sizeof...(index) != ndim()) {
+        if (static_cast<ssize_t>(sizeof...(index)) != ndim()) {
             fail_dim_check(sizeof...(index), "index dimension mismatch");
         }
         return *(static_cast<T *>(array::mutable_data())
@@ -1768,7 +1770,7 @@ private:
         }
         if (auto descr = reinterpret_steal<object>(api.PyArray_DescrFromScalar_(obj))) {
             if (api.PyArray_EquivTypes_(dtype_ptr(), descr.ptr())) {
-                value = ((PyVoidScalarObject_Proxy *) obj)->obval;
+                value = (reinterpret_cast<PyVoidScalarObject_Proxy *>(obj))->obval;
                 return true;
             }
         }
@@ -1967,12 +1969,13 @@ template <size_t N>
 broadcast_trivial
 broadcast(const std::array<buffer_info, N> &buffers, ssize_t &ndim, std::vector<ssize_t> &shape) {
     ndim = std::accumulate(
-        buffers.begin(), buffers.end(), ssize_t(0), [](ssize_t res, const buffer_info &buf) {
-            return std::max(res, buf.ndim);
-        });
+        buffers.begin(),
+        buffers.end(),
+        static_cast<ssize_t>(0),
+        [](ssize_t res, const buffer_info &buf) { return std::max(res, buf.ndim); });
 
     shape.clear();
-    shape.resize((size_t) ndim, 1);
+    shape.resize(static_cast<size_t>(ndim), 1);
 
     // Figure out the output size, and make sure all input arrays conform (i.e. are either size 1
     // or the full size).
@@ -2172,10 +2175,10 @@ private:
         ssize_t nd = 0;
         std::vector<ssize_t> shape(0);
         auto trivial = broadcast(buffers, nd, shape);
-        auto ndim = (size_t) nd;
+        auto ndim = static_cast<size_t>(nd);
 
-        size_t size
-            = std::accumulate(shape.begin(), shape.end(), (size_t) 1, std::multiplies<size_t>());
+        size_t size = std::accumulate(
+            shape.begin(), shape.end(), static_cast<size_t>(1), std::multiplies<size_t>());
 
         // If all arguments are 0-dimension arrays (i.e. single values) return a plain value (i.e.
         // not wrapped in an array).
@@ -2278,9 +2281,9 @@ detail::vectorize_helper<Return (*)(Args...), Return, Args...> vectorize(Return 
 template <typename Func, detail::enable_if_t<detail::is_lambda<Func>::value, int> = 0>
 auto vectorize(Func &&f)
     -> decltype(detail::vectorize_extractor(std::forward<Func>(f),
-                                            (detail::function_signature_t<Func> *) nullptr)) {
+                                            static_cast<detail::function_signature_t<Func> *>(nullptr))) {
     return detail::vectorize_extractor(std::forward<Func>(f),
-                                       (detail::function_signature_t<Func> *) nullptr);
+                                       static_cast<detail::function_signature_t<Func> *>(nullptr));
 }
 
 // Vectorize a class method (non-const):

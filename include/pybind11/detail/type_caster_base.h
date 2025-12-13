@@ -1644,8 +1644,8 @@ public:
         return type_caster_generic::cast(srcs,
                                          policy,
                                          parent,
-                                         make_copy_constructor((const itype *) nullptr),
-                                         make_move_constructor((const itype *) nullptr));
+                                         make_copy_constructor(static_cast<const itype *>(nullptr)),
+                                         make_move_constructor(static_cast<const itype *>(nullptr)));
     }
 
     static handle cast_holder(const itype *src, const void *holder) {
@@ -1661,13 +1661,13 @@ public:
     using cast_op_type = detail::cast_op_type<T>;
 
     // NOLINTNEXTLINE(google-explicit-constructor)
-    operator itype *() { return (type *) value; }
+    operator itype *() { return static_cast<type *>(value); }
     // NOLINTNEXTLINE(google-explicit-constructor)
     operator itype &() {
         if (!value) {
             throw reference_cast_error();
         }
-        return *((itype *) value);
+        return *(static_cast<itype *>(value));
     }
 
 protected:

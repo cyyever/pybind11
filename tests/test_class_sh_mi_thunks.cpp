@@ -144,7 +144,7 @@ TEST_SUBMODULE(class_sh_mi_thunks, m) {
     m.def("ptrdiff_drvd_base0", []() {
         auto drvd = std::unique_ptr<Derived>(new Derived);
         auto *base0 = dynamic_cast<Base0 *>(drvd.get());
-        return std::ptrdiff_t(reinterpret_cast<char *>(drvd.get())
+        return static_cast<std::ptrdiff_t>(reinterpret_cast<char *>(drvd.get())
                               - reinterpret_cast<char *>(base0));
     });
 
@@ -176,7 +176,7 @@ TEST_SUBMODULE(class_sh_mi_thunks, m) {
     m.def("vec_size_base0_raw_ptr", [](const Base0 *obj) {
         const auto *obj_der = dynamic_cast<const Derived *>(obj);
         if (obj_der == nullptr) {
-            return std::size_t(0);
+            return static_cast<std::size_t>(0);
         }
         return obj_der->vec.size();
     });
@@ -184,7 +184,7 @@ TEST_SUBMODULE(class_sh_mi_thunks, m) {
     m.def("vec_size_base0_shared_ptr", [](const std::shared_ptr<Base0> &obj) -> std::size_t {
         const auto obj_der = std::dynamic_pointer_cast<Derived>(obj);
         if (!obj_der) {
-            return std::size_t(0);
+            return static_cast<std::size_t>(0);
         }
         return obj_der->vec.size();
     });
@@ -192,7 +192,7 @@ TEST_SUBMODULE(class_sh_mi_thunks, m) {
     m.def("vec_size_base0_unique_ptr", [](std::unique_ptr<Base0> obj) -> std::size_t {
         const auto *obj_der = dynamic_cast<const Derived *>(obj.get());
         if (obj_der == nullptr) {
-            return std::size_t(0);
+            return static_cast<std::size_t>(0);
         }
         return obj_der->vec.size();
     });

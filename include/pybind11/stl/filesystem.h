@@ -37,7 +37,7 @@ struct path_caster {
 private:
     static PyObject *unicode_from_fs_native(const std::string &w) {
 #    if !defined(PYPY_VERSION)
-        return PyUnicode_DecodeFSDefaultAndSize(w.c_str(), ssize_t(w.size()));
+        return PyUnicode_DecodeFSDefaultAndSize(w.c_str(), static_cast<ssize_t>(w.size()));
 #    else
         // PyPy mistakenly declares the first parameter as non-const.
         return PyUnicode_DecodeFSDefaultAndSize(const_cast<char *>(w.c_str()), ssize_t(w.size()));
@@ -45,7 +45,7 @@ private:
     }
 
     static PyObject *unicode_from_fs_native(const std::wstring &w) {
-        return PyUnicode_FromWideChar(w.c_str(), ssize_t(w.size()));
+        return PyUnicode_FromWideChar(w.c_str(), static_cast<ssize_t>(w.size()));
     }
 
 public:

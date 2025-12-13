@@ -16,7 +16,7 @@
 
 double my_func(int x, float y, double z) {
     py::print("my_func(x:int={}, y:float={:.0f}, z:float={:.0f})"_s.format(x, y, z));
-    return (float) x * y * z;
+    return static_cast<float>(x) * y * z;
 }
 
 TEST_SUBMODULE(numpy_vectorize, m) {
@@ -77,7 +77,7 @@ TEST_SUBMODULE(numpy_vectorize, m) {
     // test_method_vectorization
     struct VectorizeTestClass {
         explicit VectorizeTestClass(int v) : value{v} {};
-        float method(int x, float y) const { return y + (float) (x + value); }
+        float method(int x, float y) const { return y + static_cast<float>(x + value); }
         int value = 0;
     };
     py::class_<VectorizeTestClass> vtc(m, "VectorizeTestClass");

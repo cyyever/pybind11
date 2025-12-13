@@ -18,7 +18,7 @@ struct SpBase {
     // returns true if there's an associated python instance
     bool has_python_instance() {
         auto *tinfo = py::detail::get_type_info(typeid(SpBase));
-        return (bool) py::detail::get_object_handle(this, tinfo);
+        return static_cast<bool>(py::detail::get_object_handle(this, tinfo));
     }
 
     SpBase() = default;
@@ -37,7 +37,7 @@ struct SpBaseTester {
     std::shared_ptr<SpBase> get_object() const { return m_obj; }
     void set_object(std::shared_ptr<SpBase> obj) { m_obj = std::move(obj); }
     bool is_base_used() const { return m_obj->is_base_used(); }
-    bool has_instance() const { return (bool) m_obj; }
+    bool has_instance() const { return static_cast<bool>(m_obj); }
     bool has_python_instance() const { return m_obj && m_obj->has_python_instance(); }
     void set_nonpython_instance() { m_obj = std::make_shared<SpBase>(); }
     std::shared_ptr<SpBase> m_obj;

@@ -25,7 +25,7 @@ class ptr_owner {
 public:
     explicit ptr_owner(std::unique_ptr<pointee> ptr) : ptr_(std::move(ptr)) {}
 
-    bool is_owner() const { return bool(ptr_); }
+    bool is_owner() const { return static_cast<bool>(ptr_); }
 
     std::unique_ptr<pointee> give_up_ownership_via_unique_ptr() { return std::move(ptr_); }
     std::shared_ptr<pointee> give_up_ownership_via_shared_ptr() { return std::move(ptr_); }

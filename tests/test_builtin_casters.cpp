@@ -94,12 +94,12 @@ TEST_SUBMODULE(builtin_casters, m) {
         wstr.push_back(mathbfA16_2);
     } // 𝐀, utf16
     else {
-        wstr.push_back((wchar_t) mathbfA32);
+        wstr.push_back(static_cast<wchar_t>( mathbfA32));
     } // 𝐀, utf32
     wstr.push_back(0x7a); // z
 
     m.def("good_utf8_string", []() {
-        return std::string((const char *) u8"Say utf8\u203d \U0001f382 \U0001d400");
+        return std::string(u8"Say utf8\u203d \U0001f382 \U0001d400");
     }); // Say utf8‽ 🎂 𝐀
     m.def("good_utf16_string", [=]() {
         return std::u16string({b16, ib16, cake16_1, cake16_2, mathbfA16_1, mathbfA16_2, z16});
@@ -111,13 +111,13 @@ TEST_SUBMODULE(builtin_casters, m) {
         return std::string("abc\xd0"
                            "def");
     });
-    m.def("bad_utf16_string", [=]() { return std::u16string({b16, char16_t(0xd800), z16}); });
+    m.def("bad_utf16_string", [=]() { return std::u16string({b16, static_cast<char16_t>(0xd800), z16}); });
     // Under Python 2.7, invalid unicode UTF-32 characters didn't appear to trigger
     // UnicodeDecodeError
-    m.def("bad_utf32_string", [=]() { return std::u32string({a32, char32_t(0xd800), z32}); });
+    m.def("bad_utf32_string", [=]() { return std::u32string({a32, static_cast<char32_t>(0xd800), z32}); });
     if (sizeof(wchar_t) == 2) {
         m.def("bad_wchar_string",
-              [=]() { return std::wstring({wchar_t(0x61), wchar_t(0xd800)}); });
+              [=]() { return std::wstring({static_cast<wchar_t>(0x61), static_cast<wchar_t>(0xd800)}); });
     }
     m.def("u8_Z", []() -> char { return 'Z'; });
     m.def("u8_eacute", []() -> char { return '\xe9'; });
@@ -164,26 +164,26 @@ TEST_SUBMODULE(builtin_casters, m) {
     m.def("string_view_chars", [](std::string_view s) {
         py::list l;
         for (auto c : s) {
-            l.append((std::uint8_t) c);
+            l.append(static_cast<std::uint8_t>(c));
         }
         return l;
     });
     m.def("string_view16_chars", [](std::u16string_view s) {
         py::list l;
         for (auto c : s) {
-            l.append((int) c);
+            l.append(static_cast<int>(c));
         }
         return l;
     });
     m.def("string_view32_chars", [](std::u32string_view s) {
         py::list l;
         for (auto c : s) {
-            l.append((int) c);
+            l.append(static_cast<int>(c));
         }
         return l;
     });
     m.def("string_view_return",
-          []() { return std::string_view((const char *) u8"utf8 secret \U0001f382"); });
+          []() { return std::string_view(u8"utf8 secret \U0001f382"); });
     m.def("string_view16_return",
           []() { return std::u16string_view(u"utf16 secret \U0001f382"); });
     m.def("string_view32_return",
@@ -368,7 +368,7 @@ TEST_SUBMODULE(builtin_casters, m) {
 
     // test int vs. long (Python 2)
     m.def("int_cast", []() { return 42; });
-    m.def("long_cast", []() { return (long) 42; });
+    m.def("long_cast", []() { return static_cast<long>(42); });
     m.def("longlong_cast", []() { return ULLONG_MAX; });
 
     /// test void* cast operator

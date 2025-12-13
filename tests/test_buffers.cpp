@@ -54,16 +54,16 @@ TEST_SUBMODULE(buffers, m) {
         Matrix(py::ssize_t rows, py::ssize_t cols) : m_rows(rows), m_cols(cols) {
             print_created(this, std::to_string(m_rows) + "x" + std::to_string(m_cols) + " matrix");
             // NOLINTNEXTLINE(cppcoreguidelines-prefer-member-initializer)
-            m_data = new float[(size_t) (rows * cols)];
-            memset(m_data, 0, sizeof(float) * (size_t) (rows * cols));
+            m_data = new float[static_cast<size_t>(rows * cols)];
+            memset(m_data, 0, sizeof(float) * static_cast<size_t>(rows * cols));
         }
 
         Matrix(const Matrix &s) : m_rows(s.m_rows), m_cols(s.m_cols) {
             print_copy_created(this,
                                std::to_string(m_rows) + "x" + std::to_string(m_cols) + " matrix");
             // NOLINTNEXTLINE(cppcoreguidelines-prefer-member-initializer)
-            m_data = new float[(size_t) (m_rows * m_cols)];
-            memcpy(m_data, s.m_data, sizeof(float) * (size_t) (m_rows * m_cols));
+            m_data = new float[static_cast<size_t>(m_rows * m_cols)];
+            memcpy(m_data, s.m_data, sizeof(float) * static_cast<size_t>(m_rows * m_cols));
         }
 
         Matrix(Matrix &&s) noexcept : m_rows(s.m_rows), m_cols(s.m_cols), m_data(s.m_data) {
@@ -88,8 +88,8 @@ TEST_SUBMODULE(buffers, m) {
             delete[] m_data;
             m_rows = s.m_rows;
             m_cols = s.m_cols;
-            m_data = new float[(size_t) (m_rows * m_cols)];
-            memcpy(m_data, s.m_data, sizeof(float) * (size_t) (m_rows * m_cols));
+            m_data = new float[static_cast<size_t>(m_rows * m_cols)];
+            memcpy(m_data, s.m_data, sizeof(float) * static_cast<size_t>(m_rows * m_cols));
             return *this;
         }
 
@@ -109,11 +109,11 @@ TEST_SUBMODULE(buffers, m) {
         }
 
         float operator()(py::ssize_t i, py::ssize_t j) const {
-            return m_data[(size_t) (i * m_cols + j)];
+            return m_data[static_cast<size_t>(i * m_cols + j)];
         }
 
         float &operator()(py::ssize_t i, py::ssize_t j) {
-            return m_data[(size_t) (i * m_cols + j)];
+            return m_data[static_cast<size_t>(i * m_cols + j)];
         }
 
         float *data() { return m_data; }
@@ -136,7 +136,7 @@ TEST_SUBMODULE(buffers, m) {
             }
 
             auto *v = new Matrix(info.shape[0], info.shape[1]);
-            memcpy(v->data(), info.ptr, sizeof(float) * (size_t) (v->rows() * v->cols()));
+            memcpy(v->data(), info.ptr, sizeof(float) * static_cast<size_t>(v->rows() * v->cols()));
             return v;
         }))
 
@@ -163,7 +163,7 @@ TEST_SUBMODULE(buffers, m) {
             return py::buffer_info(
                 m.data(),                          /* Pointer to buffer */
                 {m.rows(), m.cols()},              /* Buffer dimensions */
-                {sizeof(float) * size_t(m.cols()), /* Strides (in bytes) for each index */
+                {sizeof(float) * static_cast<size_t>(m.cols()), /* Strides (in bytes) for each index */
                  sizeof(float)});
         });
 
@@ -210,7 +210,7 @@ TEST_SUBMODULE(buffers, m) {
             return py::buffer_info(m.data(),             /* Pointer to buffer */
                                    {m.rows(), m.cols()}, /* Buffer dimensions */
                                    /* Strides (in bytes) for each index */
-                                   {sizeof(float), sizeof(float) * size_t(m.rows())});
+                                   {sizeof(float), sizeof(float) * static_cast<size_t>(m.rows())});
         });
 
     // A matrix that uses a discontiguous underlying memory block.
@@ -281,9 +281,9 @@ TEST_SUBMODULE(buffers, m) {
             return py::buffer_info(m.data(),             /* Pointer to buffer */
                                    {m.rows(), m.cols()}, /* Buffer dimensions */
                                    /* Strides (in bytes) for each index */
-                                   {size_t(m.col_factor()) * sizeof(float) * size_t(m.cols())
-                                        * size_t(m.row_factor()),
-                                    size_t(m.col_factor()) * sizeof(float)});
+                                   {static_cast<size_t>(m.col_factor()) * sizeof(float) * static_cast<size_t>(m.cols())
+                                        * static_cast<size_t>(m.row_factor()),
+                                    static_cast<size_t>(m.col_factor()) * sizeof(float)});
         });
 
     class BrokenMatrix : public Matrix {

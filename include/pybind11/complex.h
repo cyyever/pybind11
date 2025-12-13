@@ -75,13 +75,13 @@ public:
             PyErr_Clear();
             return false;
         }
-        value = std::complex<T>((T) result.real, (T) result.imag);
+        value = std::complex<T>(static_cast<T>(result.real), static_cast<T>(result.imag));
         return true;
     }
 
     static handle
     cast(const std::complex<T> &src, return_value_policy /* policy */, handle /* parent */) {
-        return PyComplex_FromDoubles((double) src.real(), (double) src.imag());
+        return PyComplex_FromDoubles(static_cast<double>(src.real()), static_cast<double>(src.imag()));
     }
 
     PYBIND11_TYPE_CASTER(

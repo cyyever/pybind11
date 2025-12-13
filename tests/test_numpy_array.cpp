@@ -92,7 +92,7 @@ template <typename... Ix>
 arr &mutate_data(arr &a, Ix... index) {
     auto *ptr = (uint8_t *) a.mutable_data(index...);
     for (py::ssize_t i = 0; i < a.nbytes() - a.offset_at(index...); i++) {
-        ptr[i] = (uint8_t) (ptr[i] * 2);
+        ptr[i] = static_cast<uint8_t>(ptr[i] * 2);
     }
     return a;
 }
@@ -484,7 +484,7 @@ TEST_SUBMODULE(numpy_array, sm) {
     // test_array_resize
     // reshape array to 2D without changing size
     sm.def("array_reshape2", [](py::array_t<double> a) {
-        const auto dim_sz = (py::ssize_t) std::sqrt(a.size());
+        const auto dim_sz = static_cast<py::ssize_t>(std::sqrt(a.size()));
         if (dim_sz * dim_sz != a.size()) {
             throw std::domain_error(
                 "array_reshape2: input array total size is not a squared integer");

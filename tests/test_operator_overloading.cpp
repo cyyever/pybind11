@@ -213,7 +213,7 @@ TEST_SUBMODULE(operators, m) {
         .def(py::self += int())
         .def(
             "as_base",
-            [](NestA &a) -> NestABase & { return (NestABase &) a; },
+            [](NestA &a) -> NestABase & { return dynamic_cast<NestABase &>(a); },
             py::return_value_policy::reference_internal);
     m.def("get_NestA", [](const NestA &a) { return a.value; });
 

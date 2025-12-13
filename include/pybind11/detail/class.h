@@ -750,7 +750,7 @@ inline PyObject *make_new_python_type(const type_record &rec) {
 #else
         tp_doc = (char *) PyObject_MALLOC(size);
 #endif
-        std::memcpy((void *) tp_doc, rec.doc, size);
+        std::memcpy(tp_doc, rec.doc, size);
     }
 
     auto &internals = get_internals();

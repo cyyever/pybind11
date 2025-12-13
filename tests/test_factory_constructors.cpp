@@ -123,7 +123,7 @@ public:
     }
     PyTF6(PyTF6 &&f) noexcept : TestFactory6(std::move(f)) { print_move_created(this); }
     PyTF6(const PyTF6 &f) : TestFactory6(f) { print_copy_created(this); }
-    explicit PyTF6(std::string s) : TestFactory6((int) s.size()) {
+    explicit PyTF6(std::string s) : TestFactory6(static_cast<int>(s.size())) {
         alias = true;
         print_created(this, s);
     }
@@ -311,8 +311,8 @@ TEST_SUBMODULE(factory_constructors, m) {
                       [](pointer_tag, int i) { return new PyTF7(i); }))
         .def(py::init([](mixed_tag, int i) { return new TestFactory7(i); },
                       [](mixed_tag, int i) { return PyTF7(i); }))
-        .def(py::init([](mixed_tag, const std::string &s) { return TestFactory7((int) s.size()); },
-                      [](mixed_tag, const std::string &s) { return new PyTF7((int) s.size()); }))
+        .def(py::init([](mixed_tag, const std::string &s) { return TestFactory7(static_cast<int>(s.size())); },
+                      [](mixed_tag, const std::string &s) { return new PyTF7(static_cast<int>(s.size())); }))
         .def(py::init([](base_tag, pointer_tag, int i) { return new TestFactory7(i); },
                       [](base_tag, pointer_tag, int i) { return (TestFactory7 *) new PyTF7(i); }))
         .def(py::init([](alias_tag, pointer_tag, int i) { return new PyTF7(i); },

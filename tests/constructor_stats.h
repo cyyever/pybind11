@@ -180,7 +180,7 @@ public:
         const std::type_index *t1 = nullptr, *t2 = nullptr;
         try {
             auto *type_info
-                = internals.registered_types_py.at((PyTypeObject *) class_.ptr()).at(0);
+                = internals.registered_types_py.at(reinterpret_cast<PyTypeObject *>(class_.ptr())).at(0);
             for (auto &p : internals.registered_types_cpp) {
                 if (p.second == type_info) {
                     if (t1) {
@@ -201,9 +201,9 @@ public:
         if (t2) {
             auto &cs2 = get(*t2);
             int cs1_total = cs1.default_constructions + cs1.copy_constructions
-                            + cs1.move_constructions + (int) cs1._values.size();
+                            + cs1.move_constructions + static_cast<int>(cs1._values.size());
             int cs2_total = cs2.default_constructions + cs2.copy_constructions
-                            + cs2.move_constructions + (int) cs2._values.size();
+                            + cs2.move_constructions + static_cast<int>(cs2._values.size());
             if (cs2_total > cs1_total) {
                 return cs2;
             }

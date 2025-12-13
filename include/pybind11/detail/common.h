@@ -1005,7 +1005,7 @@ template <template <typename...> class Base, typename T>
 // See also: https://github.com/pybind/pybind11/pull/3741
 #if !defined(_MSC_VER)
 using is_template_base_of
-    = decltype(is_template_base_of_impl<Base>::check((intrinsic_t<T> *) nullptr));
+    = decltype(is_template_base_of_impl<Base>::check(nullptr));
 #else
 struct is_template_base_of
     : decltype(is_template_base_of_impl<Base>::check((intrinsic_t<T> *) nullptr)){};

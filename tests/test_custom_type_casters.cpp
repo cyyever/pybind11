@@ -37,7 +37,7 @@ public:
         value.arg = "loading ArgInspector1 argument " + std::string(convert ? "WITH" : "WITHOUT")
                     + " conversion allowed.  "
                       "Argument value = "
-                    + (std::string) str(src);
+                    + std::string(str(src));
         return true;
     }
 
@@ -54,7 +54,7 @@ public:
         value.arg = "loading ArgInspector2 argument " + std::string(convert ? "WITH" : "WITHOUT")
                     + " conversion allowed.  "
                       "Argument value = "
-                    + (std::string) str(src);
+                    + std::string(str(src));
         return true;
     }
 

@@ -322,7 +322,7 @@ public:
     // NOLINTNEXTLINE(google-explicit-constructor)
     cpp_function(Func &&f, const Extra &...extra) {
         initialize(
-            std::forward<Func>(f), (detail::function_signature_t<Func> *) nullptr, extra...);
+            std::forward<Func>(f), static_cast<detail::function_signature_t<Func> *>(nullptr), extra...);
     }
 
     /// Construct a cpp_function from a class method (non-const, no ref-qualifier)
@@ -331,7 +331,7 @@ public:
     cpp_function(Return (Class::*f)(Arg...), const Extra &...extra) {
         initialize(
             [f](Class *c, Arg... args) -> Return { return (c->*f)(std::forward<Arg>(args)...); },
-            (Return (*)(Class *, Arg...)) nullptr,
+      static_cast<Return (*)(Class *, Arg...)>(nullptr),
             extra...);
     }
 
@@ -343,7 +343,7 @@ public:
     cpp_function(Return (Class::*f)(Arg...) &, const Extra &...extra) {
         initialize(
             [f](Class *c, Arg... args) -> Return { return (c->*f)(std::forward<Arg>(args)...); },
-            (Return (*)(Class *, Arg...)) nullptr,
+            static_cast<Return (*)(Class *, Arg...)>(nullptr),
             extra...);
     }
 
@@ -353,7 +353,7 @@ public:
     cpp_function(Return (Class::*f)(Arg...) const, const Extra &...extra) {
         initialize([f](const Class *c,
                        Arg... args) -> Return { return (c->*f)(std::forward<Arg>(args)...); },
-                   (Return (*)(const Class *, Arg...)) nullptr,
+                   static_cast<Return (*)(const Class *, Arg...)>(nullptr),
                    extra...);
     }
 
@@ -365,7 +365,7 @@ public:
     cpp_function(Return (Class::*f)(Arg...) const &, const Extra &...extra) {
         initialize([f](const Class *c,
                        Arg... args) -> Return { return (c->*f)(std::forward<Arg>(args)...); },
-                   (Return (*)(const Class *, Arg...)) nullptr,
+                   static_cast<Return (*)(const Class *, Arg...)>(nullptr),
                    extra...);
     }
 
@@ -433,7 +433,7 @@ protected:
             PYBIND11_WARNING_POP
         } else {
             rec->data[0] = new capture{std::forward<Func>(f)};
-            rec->free_data = [](function_record *r) { delete ((capture *) r->data[0]); };
+            rec->free_data = [](function_record *r) { delete (static_cast<capture *>(r->data[0])); };
         }
 
         /* Type casters for the function arguments and return value */
@@ -2301,7 +2301,7 @@ public:
                 if (!caster.load(obj, false)) {
                     return nullptr;
                 }
-                return new buffer_info(((capture *) ptr)->func(std::move(caster)));
+                return new buffer_info((static_cast<capture *>(ptr))->func(std::move(caster)));
             },
             ptr);
         weakref(m_ptr, cpp_function([ptr](handle wr) {
@@ -2531,7 +2531,7 @@ private:
             register_instance(inst, v_h.value_ptr(), v_h.type);
             v_h.set_instance_registered();
         }
-        init_holder(inst, v_h, (const holder_type *) holder_ptr, v_h.value_ptr<type>());
+        init_holder(inst, v_h, static_cast<const holder_type *>(holder_ptr), v_h.value_ptr<type>());
     }
 
     template <typename WrappedType>
@@ -2958,9 +2958,9 @@ public:
         m_base.init(is_arithmetic, is_convertible);
 
         def(init([](Scalar i) { return static_cast<Type>(i); }), arg("value"));
-        def_property_readonly("value", [](Type value) { return (Scalar) value; }, pos_only());
-        def("__int__", [](Type value) { return (Scalar) value; }, pos_only());
-        def("__index__", [](Type value) { return (Scalar) value; }, pos_only());
+        def_property_readonly("value", [](Type value) { return static_cast<Scalar>(value); }, pos_only());
+        def("__int__", [](Type value) { return static_cast<Scalar>(value); }, pos_only());
+        def("__index__", [](Type value) { return static_cast<Scalar>(value); }, pos_only());
         attr("__setstate__") = cpp_function(
             [](detail::value_and_holder &v_h, Scalar arg) {
                 detail::initimpl::setstate<Base>(

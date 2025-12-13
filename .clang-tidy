@@ -10,6 +10,7 @@ Checks: |
   cppcoreguidelines-pro-type-static-cast-downcast,
   cppcoreguidelines-slicing,
   google-explicit-constructor,
+  google-readability-casting,
   llvm-namespace-comment,
   misc-definitions-in-headers,
   misc-misplaced-const,

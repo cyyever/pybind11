@@ -137,7 +137,7 @@ void vector_modifiers(
         if (i < 0) {
             i += n;
         }
-        if (i < 0 || (SizeType) i >= n) {
+        if (i < 0 || static_cast<SizeType>(i) >= n) {
             throw index_error();
         }
         return i;
@@ -196,7 +196,7 @@ void vector_modifiers(
             if (i < 0) {
                 i += v.size();
             }
-            if (i < 0 || (SizeType) i > v.size()) {
+            if (i < 0 || static_cast<SizeType>(i) > v.size()) {
                 throw index_error();
             }
             v.insert(v.begin() + i, x);
@@ -221,7 +221,7 @@ void vector_modifiers(
         "pop",
         [wrap_i](Vector &v, DiffType i) {
             i = wrap_i(i, v.size());
-            T t = std::move(v[(SizeType) i]);
+            T t = std::move(v[static_cast<SizeType>(i)]);
             v.erase(std::next(v.begin(), i));
             return t;
         },
@@ -230,7 +230,7 @@ void vector_modifiers(
 
     cl.def("__setitem__", [wrap_i](Vector &v, DiffType i, const T &t) {
         i = wrap_i(i, v.size());
-        v[(SizeType) i] = t;
+        v[static_cast<SizeType>(i)] = t;
     });
 
     /// Slicing protocol
@@ -293,7 +293,7 @@ void vector_modifiers(
             }
 
             if (step == 1 && false) {
-                v.erase(v.begin() + (DiffType) start, v.begin() + DiffType(start + slicelength));
+                v.erase(v.begin() + static_cast<DiffType>(start), v.begin() + DiffType(start + slicelength));
             } else {
                 for (size_t i = 0; i < slicelength; ++i) {
                     v.erase(v.begin() + DiffType(start));
@@ -323,7 +323,7 @@ void vector_accessor(enable_if_t<!vector_needs_copy<Vector>::value, Class_> &cl)
         if (i < 0) {
             i += n;
         }
-        if (i < 0 || (SizeType) i >= n) {
+        if (i < 0 || static_cast<SizeType>(i) >= n) {
             throw index_error();
         }
         return i;
@@ -333,7 +333,7 @@ void vector_accessor(enable_if_t<!vector_needs_copy<Vector>::value, Class_> &cl)
         "__getitem__",
         [wrap_i](Vector &v, DiffType i) -> T & {
             i = wrap_i(i, v.size());
-            return v[(SizeType) i];
+            return v[static_cast<SizeType>(i)];
         },
         return_value_policy::reference_internal // ref + keepalive
     );
@@ -451,7 +451,7 @@ void vector_buffer_impl(Class_ &cl, std::true_type) {
             throw type_error("Only valid 1D buffers can be copied to a vector");
         }
         if (!detail::compare_buffer_info<T>::compare(info)
-            || (ssize_t) sizeof(T) != info.itemsize) {
+            || static_cast<ssize_t>(sizeof(T)) != info.itemsize) {
             throw type_error("Format mismatch (Python: " + info.format
                              + " C++: " + format_descriptor<T>::format() + ")");
         }
@@ -463,7 +463,7 @@ void vector_buffer_impl(Class_ &cl, std::true_type) {
             return Vector(p, end);
         }
         Vector vec;
-        vec.reserve((size_t) info.shape[0]);
+        vec.reserve(static_cast<size_t>(info.shape[0]));
         for (; p != end; p += step) {
             vec.push_back(*p);
         }

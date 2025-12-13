@@ -939,7 +939,7 @@ template <typename T>
 T &get_or_create_shared_data(const std::string &name) {
     return *detail::with_internals([&](detail::internals &internals) {
         auto it = internals.shared_data.find(name);
-        T *ptr = (T *) (it != internals.shared_data.end() ? it->second : nullptr);
+        T *ptr = static_cast<T *>(it != internals.shared_data.end() ? it->second : nullptr);
         if (!ptr) {
             ptr = new T();
             internals.shared_data[name] = ptr;

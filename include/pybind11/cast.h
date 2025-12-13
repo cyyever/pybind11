@@ -254,7 +254,7 @@ public:
 
         if (std::is_floating_point<T>::value) {
             if (convert || PyFloat_Check(src.ptr())) {
-                py_value = (py_type) PyFloat_AsDouble(src.ptr());
+                py_value = static_cast<py_type>(PyFloat_AsDouble(src.ptr()));
             } else {
                 return false;
             }
@@ -281,19 +281,19 @@ public:
                 py_value = as_unsigned<py_type>(src_or_index.ptr());
             } else { // signed integer:
                 py_value = sizeof(T) <= sizeof(long)
-                               ? (py_type) PyLong_AsLong(src_or_index.ptr())
-                               : (py_type) PYBIND11_LONG_AS_LONGLONG(src_or_index.ptr());
+                               ? static_cast<py_type>(PyLong_AsLong(src_or_index.ptr()))
+                               : static_cast<py_type>(PYBIND11_LONG_AS_LONGLONG(src_or_index.ptr()));
             }
         }
 
         // Python API reported an error
-        bool py_err = py_value == (py_type) -1 && PyErr_Occurred();
+        bool py_err = py_value == static_cast<py_type>(-1) && PyErr_Occurred();
 
         // Check to see if the conversion is valid (integers should match exactly)
         // Signed/unsigned checks happen elsewhere
         if (py_err
             || (std::is_integral<T>::value && sizeof(py_type) != sizeof(T)
-                && py_value != (py_type) (T) py_value)) {
+                && py_value != static_cast<py_type>(static_cast<T>(py_value)))) {
             PyErr_Clear();
             if (py_err && convert && (PyNumber_Check(src.ptr()) != 0)) {
                 auto tmp = reinterpret_steal<object>(std::is_floating_point<T>::value
@@ -305,14 +305,14 @@ public:
             return false;
         }
 
-        value = (T) py_value;
+        value = static_cast<T>(py_value);
         return true;
     }
 
     template <typename U = T>
     static typename std::enable_if<std::is_floating_point<U>::value, handle>::type
     cast(U src, return_value_policy /* policy */, handle /* parent */) {
-        return PyFloat_FromDouble((double) src);
+        return PyFloat_FromDouble(static_cast<double>(src));
     }
 
     template <typename U = T>
@@ -320,7 +320,7 @@ public:
                                        && (sizeof(U) <= sizeof(long)),
                                    handle>::type
     cast(U src, return_value_policy /* policy */, handle /* parent */) {
-        return PYBIND11_LONG_FROM_SIGNED((long) src);
+        return PYBIND11_LONG_FROM_SIGNED(static_cast<long>(src));
     }
 
     template <typename U = T>
@@ -336,7 +336,7 @@ public:
                                        && (sizeof(U) > sizeof(long)),
                                    handle>::type
     cast(U src, return_value_policy /* policy */, handle /* parent */) {
-        return PyLong_FromLongLong((long long) src);
+        return PyLong_FromLongLong(static_cast<long long>(src));
     }
 
     template <typename U = T>
@@ -344,7 +344,7 @@ public:
                                        && (sizeof(U) > sizeof(unsigned long)),
                                    handle>::type
     cast(U src, return_value_policy /* policy */, handle /* parent */) {
-        return PyLong_FromUnsignedLongLong((unsigned long long) src);
+        return PyLong_FromUnsignedLongLong(static_cast<unsigned long long>(src));
     }
 
     PYBIND11_TYPE_CASTER(
@@ -602,7 +602,7 @@ private:
             if (!bytes) {
                 pybind11_fail("Unexpected PYBIND11_BYTES_AS_STRING() failure.");
             }
-            value = StringType(bytes, (size_t) PYBIND11_BYTES_SIZE(src.ptr()));
+            value = StringType(bytes, static_cast<size_t>(PYBIND11_BYTES_SIZE(src.ptr())));
             return true;
         }
         if (PyByteArray_Check(src.ptr())) {
@@ -612,7 +612,7 @@ private:
             if (!bytearray) {
                 pybind11_fail("Unexpected PyByteArray_AsString() failure.");
             }
-            value = StringType(bytearray, (size_t) PyByteArray_Size(src.ptr()));
+            value = StringType(bytearray, static_cast<size_t>(PyByteArray_Size(src.ptr())));
             return true;
         }
 
@@ -672,7 +672,7 @@ public:
 
     static handle cast(CharT src, return_value_policy policy, handle parent) {
         if (std::is_same<char, CharT>::value) {
-            handle s = PyUnicode_DecodeLatin1((const char *) &src, 1, nullptr);
+            handle s = PyUnicode_DecodeLatin1(reinterpret_cast<const char *>(&src), 1, nullptr);
             if (!s) {
                 throw error_already_set();
             }
@@ -913,7 +913,7 @@ protected:
     }
 
     bool set_foreign_holder(handle src) {
-        return holder_caster_foreign_helpers::set_foreign_holder(src, (type *) value, &holder);
+        return holder_caster_foreign_helpers::set_foreign_holder(src, static_cast<type *>(value), &holder);
     }
 
     void load_value(value_and_holder &&v_h) {
@@ -945,7 +945,7 @@ protected:
             copyable_holder_caster sub_caster(*cast.first);
             if (sub_caster.load(src, convert)) {
                 value = cast.second(sub_caster.value);
-                holder = holder_type(sub_caster.holder, (type *) value);
+                holder = holder_type(sub_caster.holder, static_cast<type *>(value));
                 return true;
             }
         }
@@ -1049,7 +1049,7 @@ protected:
 
     bool set_foreign_holder(handle src) {
         return holder_caster_foreign_helpers::set_foreign_holder(
-            src, (type *) value, &shared_ptr_storage);
+            src, static_cast<type *>(value), &shared_ptr_storage);
     }
 
     void load_value(value_and_holder &&v_h) {
@@ -1092,7 +1092,7 @@ protected:
                     sh_load_helper.was_populated = true;
                 } else {
                     shared_ptr_storage
-                        = std::shared_ptr<type>(sub_caster.shared_ptr_storage, (type *) value);
+                        = std::shared_ptr<type>(sub_caster.shared_ptr_storage, static_cast<type *>(value));
                 }
                 return true;
             }
@@ -2127,7 +2127,7 @@ class argument_loader {
     // Get kwargs argument position, or -1 if not present:
     static constexpr auto kwargs_pos = constexpr_last<argument_is_kwargs, Args...>();
 
-    static_assert(kwargs_pos == -1 || kwargs_pos == (int) sizeof...(Args) - 1,
+    static_assert(kwargs_pos == -1 || kwargs_pos == static_cast<int>(sizeof...(Args) - 1),
                   "py::kwargs is only permitted as the last argument of a function");
 
 public:

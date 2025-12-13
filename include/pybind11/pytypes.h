@@ -1908,7 +1908,7 @@ private:
 };
 
 PYBIND11_NAMESPACE_BEGIN(detail)
-// Converts a value to the given unsigned type.  If an error occurs, you get back (Unsigned) -1;
+// Converts a value to the given unsigned type.  If an error occurs, you get back static_cast<Unsigned>(-1);
 // otherwise you get back the unsigned long or unsigned long long value cast to (Unsigned).
 // (The distinction is critically important when casting a returned -1 error value to some other
 // unsigned type: (A)-1 != (B)-1 when A and B are unsigned types of different sizes).
@@ -1916,12 +1916,12 @@ template <typename Unsigned>
 Unsigned as_unsigned(PyObject *o) {
     if (sizeof(Unsigned) <= sizeof(unsigned long)) {
         unsigned long v = PyLong_AsUnsignedLong(o);
-        return v == static_cast<unsigned long>(-1) && PyErr_Occurred() ? (Unsigned) -1
-                                                                       : (Unsigned) v;
+        return v == static_cast<unsigned long>(-1) && PyErr_Occurred() ? static_cast<Unsigned>(-1)
+                                                                       : static_cast<Unsigned>(v);
     }
     unsigned long long v = PyLong_AsUnsignedLongLong(o);
-    return v == static_cast<unsigned long long>(-1) && PyErr_Occurred() ? (Unsigned) -1
-                                                                        : (Unsigned) v;
+    return v == static_cast<unsigned long long>(-1) && PyErr_Occurred() ? static_cast<Unsigned>(-1)
+                                                                        : static_cast<Unsigned>(v);
 }
 PYBIND11_NAMESPACE_END(detail)
 
@@ -1935,15 +1935,15 @@ public:
     int_(T value) {
         if (sizeof(T) <= sizeof(long)) {
             if (std::is_signed<T>::value) {
-                m_ptr = PyLong_FromLong((long) value);
+                m_ptr = PyLong_FromLong(static_cast<long>(value));
             } else {
-                m_ptr = PyLong_FromUnsignedLong((unsigned long) value);
+                m_ptr = PyLong_FromUnsignedLong(static_cast<unsigned long>(value));
             }
         } else {
             if (std::is_signed<T>::value) {
-                m_ptr = PyLong_FromLongLong((long long) value);
+                m_ptr = PyLong_FromLongLong(static_cast<long long>(value));
             } else {
-                m_ptr = PyLong_FromUnsignedLongLong((unsigned long long) value);
+                m_ptr = PyLong_FromUnsignedLongLong(static_cast<unsigned long long>(value));
             }
         }
         if (!m_ptr) {
@@ -1955,8 +1955,8 @@ public:
     // NOLINTNEXTLINE(google-explicit-constructor)
     operator T() const {
         return std::is_unsigned<T>::value  ? detail::as_unsigned<T>(m_ptr)
-               : sizeof(T) <= sizeof(long) ? (T) PyLong_AsLong(m_ptr)
-                                           : (T) PYBIND11_LONG_AS_LONGLONG(m_ptr);
+               : sizeof(T) <= sizeof(long) ? static_cast<T>(PyLong_AsLong(m_ptr))
+                                           : static_cast<T>(PYBIND11_LONG_AS_LONGLONG(m_ptr));
     }
 };
 
@@ -2366,7 +2366,7 @@ public:
         }
         return handle();
     }
-    bool is_cpp_function() const { return (bool) cpp_function(); }
+    bool is_cpp_function() const { return static_cast<bool>(cpp_function()); }
 };
 
 class staticmethod : public object {

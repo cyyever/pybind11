@@ -36,6 +36,6 @@ TEST_SUBMODULE(class_sh_disowning, m) {
 
     m.def("mixed", mixed);
 
-    m.def("overloaded", (int (*)(std::unique_ptr<Atype<1>>, int)) &overloaded);
-    m.def("overloaded", (int (*)(std::unique_ptr<Atype<2>>, int)) &overloaded);
+    m.def("overloaded", static_cast<int (*)(std::unique_ptr<Atype<1>>, int)>(&overloaded));
+    m.def("overloaded", static_cast<int (*)(std::unique_ptr<Atype<2>>, int)>(&overloaded));
 }

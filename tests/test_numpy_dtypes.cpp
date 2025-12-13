@@ -135,7 +135,7 @@ std::ostream &operator<<(std::ostream &os, const ArrayStruct &v) {
         os << v.a[i][3] << '}';
     }
     os << "},b={" << v.b[0] << ',' << v.b[1];
-    os << "},c={" << int(v.c[0]) << ',' << int(v.c[1]) << ',' << int(v.c[2]);
+    os << "},c={" << static_cast<int>(v.c[0]) << ',' << static_cast<int>(v.c[1]) << ',' << static_cast<int>(v.c[2]);
     os << "},d={";
     for (int i = 0; i < 4; i++) {
         if (i > 0) {
@@ -207,7 +207,7 @@ py::array_t<int32_t, 0> test_array_ctors(int i) {
     auto fill = [](py::array arr) {
         auto req = arr.request();
         for (int i = 0; i < 6; i++) {
-            ((int32_t *) req.ptr)[i] = i + 1;
+            (static_cast<int32_t *>(req.ptr))[i] = i + 1;
         }
         return arr;
     };
@@ -650,22 +650,22 @@ TEST_SUBMODULE(numpy_dtypes, m) {
     // test_array_array
     m.def("create_array_array", [](size_t n) {
         py::array_t<ArrayStruct, 0> arr = mkarray_via_buffer<ArrayStruct>(n);
-        auto *ptr = (ArrayStruct *) arr.mutable_data();
+        auto *ptr = static_cast<ArrayStruct *>(arr.mutable_data());
         for (size_t i = 0; i < n; i++) {
             for (size_t j = 0; j < 3; j++) {
                 for (size_t k = 0; k < 4; k++) {
-                    ptr[i].a[j][k] = char('A' + (i * 100 + j * 10 + k) % 26);
+                    ptr[i].a[j][k] = static_cast<char>('A' + (i * 100 + j * 10 + k) % 26);
                 }
             }
             for (size_t j = 0; j < 2; j++) {
-                ptr[i].b[j] = int32_t(i * 1000 + j);
+                ptr[i].b[j] = static_cast<int32_t>(i * 1000 + j);
             }
             for (size_t j = 0; j < 3; j++) {
-                ptr[i].c[j] = uint8_t(i * 10 + j);
+                ptr[i].c[j] = static_cast<uint8_t>(i * 10 + j);
             }
             for (size_t j = 0; j < 4; j++) {
                 for (size_t k = 0; k < 2; k++) {
-                    ptr[i].d[j][k] = float(i) * 100.0f + float(j) * 10.0f + float(k);
+                    ptr[i].d[j][k] = static_cast<float>(i) * 100.0f + static_cast<float>(j) * 10.0f + static_cast<float>(k);
                 }
             }
         }
@@ -676,9 +676,9 @@ TEST_SUBMODULE(numpy_dtypes, m) {
     // test_enum_array
     m.def("create_enum_array", [](size_t n) {
         py::array_t<EnumStruct, 0> arr = mkarray_via_buffer<EnumStruct>(n);
-        auto *ptr = (EnumStruct *) arr.mutable_data();
+        auto *ptr = static_cast<EnumStruct *>(arr.mutable_data());
         for (size_t i = 0; i < n; i++) {
-            ptr[i].e1 = static_cast<E1>(-1 + ((int) i % 2) * 2);
+            ptr[i].e1 = static_cast<E1>(-1 + (static_cast<int>(i) % 2) * 2);
             ptr[i].e2 = static_cast<E2>(1 + (i % 2));
         }
         return arr;
@@ -688,12 +688,12 @@ TEST_SUBMODULE(numpy_dtypes, m) {
     // test_complex_array
     m.def("create_complex_array", [](size_t n) {
         py::array_t<ComplexStruct, 0> arr = mkarray_via_buffer<ComplexStruct>(n);
-        auto *ptr = (ComplexStruct *) arr.mutable_data();
+        auto *ptr = static_cast<ComplexStruct *>(arr.mutable_data());
         for (size_t i = 0; i < n; i++) {
-            ptr[i].cflt.real(float(i));
-            ptr[i].cflt.imag(float(i) + 0.25f);
-            ptr[i].cdbl.real(double(i) + 0.5);
-            ptr[i].cdbl.imag(double(i) + 0.75);
+            ptr[i].cflt.real(static_cast<float>(i));
+            ptr[i].cflt.imag(static_cast<float>(i) + 0.25f);
+            ptr[i].cdbl.real(static_cast<double>(i) + 0.5);
+            ptr[i].cdbl.imag(static_cast<double>(i) + 0.75);
         }
         return arr;
     });
